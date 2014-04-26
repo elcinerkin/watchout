@@ -1,5 +1,19 @@
 /* your beautiful css styling goes here! */
 
-/* Note: an asteroid image is included in this repo. 
+/* Note: an asteroid image is included in this repo.
 Feel free to use it if you like. */
 
+body {
+  background-color: #fff;
+}
+
+.circle {
+  border-radius: 10px;
+  background-color: red;
+}
+
+.enemy {
+  height: 50px;
+  width: 50px;
+  content: url('fireball.png');
+}
