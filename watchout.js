@@ -14,6 +14,9 @@ var getCoordinates = function(){
 
 var enemyXYCoordinatesObj = {}; // object that data's indexes refer to, e.g. enemyXYCoordinatesObj[0] === (x, y) of element 0
 var enemyXYCoordinates = []; // data hash with values [0, 1, 2, ..., n]
+var playerXYCoordinatesObj = {0: [300, 200]};
+var playerXYCoordinates = [0];
+
 
 for (var i = 0; i < enemyCount; i++) {
   enemyXYCoordinatesObj[i] = getCoordinates();
@@ -28,17 +31,27 @@ var svg = d3.select('body')
   .attr('transform', 'translate(' + xOffset + ',' + yOffset + ')');
 
 // update function
-var update = function(data) {
+var update = function(enemyData, playerData) {
   // DATA JOIN
-  var field = svg.selectAll('circle').data(data);
+  var field = svg.selectAll('.enemy').data(enemyData);
+  var player = svg.selectAll('.player').data(playerData);
 
-  //UPDATE
+  //UPDATE - enemies
   field.transition().duration(200)
     .attr('cx',  function(d) {
       return enemyXYCoordinatesObj[d][0];
     })
     .attr('cy', function(d) {
       return enemyXYCoordinatesObj[d][1];
+    });
+
+  //UPDATE - player
+  player.transition().duration(100)
+    .attr('cx', function(d){
+      return playerXYCoordinatesObj[d][0];
+    })
+    .attr('cy', function(d){
+      return playerXYCoordinatesObj[d][1];
     });
 
   // ENTER - create enemies
@@ -52,10 +65,25 @@ var update = function(data) {
       return enemyXYCoordinatesObj[d][1];
     })
     .attr('r', 10);
+
+  // ENTER - create player
+  player.enter()
+    .append('circle')
+    .attr('class', 'player')
+    .attr('cx', 300)
+    .attr('cy', 200)
+    .attr('r', 15)
+    .style('fill', 'pink')
+    .call(d3.behavior.drag()
+    .on("drag", function(d) {
+      playerXYCoordinatesObj[0][0]+= d3.event.dx;
+      playerXYCoordinatesObj[0][1]+= d3.event.dy;
+    }));
+
 };
 
 // inital display
-update(enemyXYCoordinates);
+update(enemyXYCoordinates, playerXYCoordinates);
 
 
 // refresh display
@@ -63,5 +91,5 @@ setInterval(function(){
   for (var i = 0; i < enemyCount; i++) {
     enemyXYCoordinatesObj[i] = getCoordinates();
   }
-  update(enemyXYCoordinates);
+  update(enemyXYCoordinates, playerXYCoordinates);
 },  refreshRate);
