@@ -6,7 +6,8 @@ var height = 400; // height of SVG element
 var xOffset = '320px'; // width offset of SVG element from top-left of screen
 var yOffset = '200px'; // width offset of SVG element from top-left of screen
 var enemyCount = 10;
-var refreshRate = 1000;
+var refreshRateEnemy = 1500;
+var refreshRatePlayer = 10;
 
 var getCoordinates = function(){
   return [Math.random() * width, Math.random() * height];
@@ -30,28 +31,38 @@ var svg = d3.select('body')
   .attr('width', width)
   .attr('transform', 'translate(' + xOffset + ',' + yOffset + ')');
 
+var collisionCheck = function() {
+  var playerX = playerXYCoordinatesObj[0][0];
+  var playerY = playerXYCoordinatesObj[0][1];
+  var enemyX;
+  var enemyY;
+  var threshold = 25; // player radius + enemy radius
+
+  for (var i = 0; i < enemyCount; i++) {
+    enemyX = d3.select(d3.selectAll('.enemy')[0][i]).attr('cx');
+    enemyY = d3.select(d3.selectAll('.enemy')[0][i]).attr('cy');
+
+    if (Math.abs(playerX - enemyX) < threshold  &&
+      Math.abs(playerY - enemyY) < threshold) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 // update function
-var update = function(enemyData, playerData) {
+var updateEnemies = function(enemyData) {
   // DATA JOIN
   var field = svg.selectAll('.enemy').data(enemyData);
-  var player = svg.selectAll('.player').data(playerData);
 
   //UPDATE - enemies
-  field.transition().duration(200)
+  field.transition().duration(1000)
     .attr('cx',  function(d) {
       return enemyXYCoordinatesObj[d][0];
     })
     .attr('cy', function(d) {
       return enemyXYCoordinatesObj[d][1];
-    });
-
-  //UPDATE - player
-  player.transition().duration(100)
-    .attr('cx', function(d){
-      return playerXYCoordinatesObj[d][0];
-    })
-    .attr('cy', function(d){
-      return playerXYCoordinatesObj[d][1];
     });
 
   // ENTER - create enemies
@@ -65,6 +76,36 @@ var update = function(enemyData, playerData) {
       return enemyXYCoordinatesObj[d][1];
     })
     .attr('r', 10);
+
+    collisionCheck();
+};
+
+// inital display
+updateEnemies(enemyXYCoordinates);
+
+
+// refresh display
+setInterval(function(){
+  for (var i = 0; i < enemyCount; i++) {
+    enemyXYCoordinatesObj[i] = getCoordinates();
+  }
+  updateEnemies(enemyXYCoordinates);
+},  refreshRateEnemy);
+
+
+
+var updatePlayer = function(playerData) {
+  // DATA JOIN
+  var player = svg.selectAll('.player').data(playerData);
+
+  //UPDATE - player
+  player.transition().duration(10)
+    .attr('cx', function(d){
+      return playerXYCoordinatesObj[d][0];
+    })
+    .attr('cy', function(d){
+      return playerXYCoordinatesObj[d][1];
+    });
 
   // ENTER - create player
   player.enter()
@@ -80,16 +121,16 @@ var update = function(enemyData, playerData) {
       playerXYCoordinatesObj[0][1]+= d3.event.dy;
     }));
 
+    collisionCheck();
+
 };
 
 // inital display
-update(enemyXYCoordinates, playerXYCoordinates);
+updatePlayer(playerXYCoordinates);
 
 
 // refresh display
 setInterval(function(){
-  for (var i = 0; i < enemyCount; i++) {
-    enemyXYCoordinatesObj[i] = getCoordinates();
-  }
-  update(enemyXYCoordinates, playerXYCoordinates);
-},  refreshRate);
+  updatePlayer(playerXYCoordinates);
+  collisionCheck();
+},  refreshRatePlayer);
