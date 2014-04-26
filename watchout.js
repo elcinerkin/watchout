@@ -8,6 +8,10 @@ var yOffset = '200px'; // width offset of SVG element from top-left of screen
 var enemyCount = 10;
 var refreshRateEnemy = 1500;
 var refreshRatePlayer = 10;
+var refreshRateScore = 1000;
+var currentScore = 0;
+var highScore = 0;
+var collisions = 0;
 
 var getCoordinates = function(){
   return [Math.random() * width, Math.random() * height];
@@ -56,7 +60,7 @@ var updateEnemies = function(enemyData) {
   // DATA JOIN
   var field = svg.selectAll('.enemy').data(enemyData);
 
-  //UPDATE - enemies
+  // UPDATE - enemies
   field.transition().duration(1000)
     .attr('cx',  function(d) {
       return enemyXYCoordinatesObj[d][0];
@@ -76,15 +80,13 @@ var updateEnemies = function(enemyData) {
       return enemyXYCoordinatesObj[d][1];
     })
     .attr('r', 10);
-
-    collisionCheck();
 };
 
-// inital display
+// inital enemy display
 updateEnemies(enemyXYCoordinates);
 
 
-// refresh display
+// refresh enemy display
 setInterval(function(){
   for (var i = 0; i < enemyCount; i++) {
     enemyXYCoordinatesObj[i] = getCoordinates();
@@ -98,7 +100,7 @@ var updatePlayer = function(playerData) {
   // DATA JOIN
   var player = svg.selectAll('.player').data(playerData);
 
-  //UPDATE - player
+  // UPDATE - player
   player.transition().duration(10)
     .attr('cx', function(d){
       return playerXYCoordinatesObj[d][0];
@@ -121,16 +123,26 @@ var updatePlayer = function(playerData) {
       playerXYCoordinatesObj[0][1]+= d3.event.dy;
     }));
 
-    collisionCheck();
-
 };
 
-// inital display
+// inital player display
 updatePlayer(playerXYCoordinates);
 
 
-// refresh display
+// refresh player display and check collisions
 setInterval(function(){
   updatePlayer(playerXYCoordinates);
-  collisionCheck();
+  if(collisionCheck()) {
+    collisions++;
+    currentScore = 0;
+  }
+  d3.select('.collisions').text(collisions);
 },  refreshRatePlayer);
+
+// refresh score
+setInterval(function() {
+  currentScore++;
+  highScore = Math.max(currentScore, highScore);
+  d3.select('.current').text(currentScore);
+  d3.select('.high').text(highScore);
+}, refreshRateScore);
