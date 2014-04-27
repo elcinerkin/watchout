@@ -6,14 +6,3 @@ Feel free to use it if you like. */
 body {
   background-color: #fff;
 }
-
-.circle {
-  border-radius: 10px;
-  background-color: red;
-}
-
-.enemy {
-  height: 50px;
-  width: 50px;
-  content: url('fireball.png');
-}

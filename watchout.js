@@ -12,6 +12,7 @@ var refreshRateScore = 1000;
 var currentScore = 0;
 var highScore = 0;
 var collisions = 0;
+var count = 0;
 
 var getCoordinates = function(){
   return [Math.random() * width, Math.random() * height];
@@ -32,8 +33,7 @@ for (var i = 0; i < enemyCount; i++) {
 var svg = d3.select('body')
   .append('svg')
   .attr('height', height)
-  .attr('width', width)
-  .attr('transform', 'translate(' + xOffset + ',' + yOffset + ')');
+  .attr('width', width);
 
 var collisionCheck = function() {
   var playerX = playerXYCoordinatesObj[0][0];
@@ -43,8 +43,8 @@ var collisionCheck = function() {
   var threshold = 25; // player radius + enemy radius
 
   for (var i = 0; i < enemyCount; i++) {
-    enemyX = d3.select(d3.selectAll('.enemy')[0][i]).attr('cx');
-    enemyY = d3.select(d3.selectAll('.enemy')[0][i]).attr('cy');
+    enemyX = d3.select(d3.selectAll('.enemy')[0][i]).attr('x');
+    enemyY = d3.select(d3.selectAll('.enemy')[0][i]).attr('y');
 
     if (Math.abs(playerX - enemyX) < threshold  &&
       Math.abs(playerY - enemyY) < threshold) {
@@ -62,24 +62,40 @@ var updateEnemies = function(enemyData) {
 
   // UPDATE - enemies
   field.transition().duration(1000)
-    .attr('cx',  function(d) {
+    .attr('x',  function(d) {
       return enemyXYCoordinatesObj[d][0];
     })
-    .attr('cy', function(d) {
+    .attr('y', function(d) {
       return enemyXYCoordinatesObj[d][1];
+    })
+    .attr('transform', function(){
+
     });
 
-  // ENTER - create enemies
-  field.enter()
-    .append('circle')
+  // ENTER - create enemies (as a circle)
+  // field.enter()
+  //   .append('circle')
+  //   .attr('class', 'enemy')
+  //   .attr('cx', function(d) {
+  //     return enemyXYCoordinatesObj[d][0];
+  //   })
+  //   .attr('cy', function(d) {
+  //     return enemyXYCoordinatesObj[d][1];
+  //   })
+  //   .attr('r', 10);
+
+    field.enter()
+    .append('image')
     .attr('class', 'enemy')
-    .attr('cx', function(d) {
+    .attr('x', function(d) {
       return enemyXYCoordinatesObj[d][0];
     })
-    .attr('cy', function(d) {
+    .attr('y', function(d) {
       return enemyXYCoordinatesObj[d][1];
     })
-    .attr('r', 10);
+    .attr('width', 50)
+    .attr('height', 50)
+    .attr('xlink:href', 'fireball.png');
 };
 
 // inital enemy display
@@ -102,21 +118,26 @@ var updatePlayer = function(playerData) {
 
   // UPDATE - player
   player.transition().duration(10)
-    .attr('cx', function(d){
+    .attr('x', function(d){
       return playerXYCoordinatesObj[d][0];
     })
-    .attr('cy', function(d){
+    .attr('y', function(d){
       return playerXYCoordinatesObj[d][1];
     });
 
   // ENTER - create player
   player.enter()
-    .append('circle')
+    .append('image')
     .attr('class', 'player')
-    .attr('cx', 300)
-    .attr('cy', 200)
-    .attr('r', 15)
-    .style('fill', 'pink')
+    .attr('x', function(d) {
+      return playerXYCoordinatesObj[d][0];
+    })
+    .attr('y', function(d) {
+      return playerXYCoordinatesObj[d][1];
+    })
+    .attr('width', 100)
+    .attr('height', 150)
+    .attr('xlink:href', 'zuko.png')
     .call(d3.behavior.drag()
     .on("drag", function(d) {
       playerXYCoordinatesObj[0][0]+= d3.event.dx;
@@ -129,14 +150,23 @@ var updatePlayer = function(playerData) {
 updatePlayer(playerXYCoordinates);
 
 
-// refresh player display and check collisions
+// refresh player display, rotating enemies, and check collisions
 setInterval(function(){
+  count++;
+  if (count > 360) {
+    count = 0;
+  }
+
   updatePlayer(playerXYCoordinates);
   if(collisionCheck()) {
     collisions++;
     currentScore = 0;
   }
   d3.select('.collisions').text(collisions);
+  d3.selectAll('.enemy').attr('transform', function(d) {
+    return 'rotate(' + count + ',' +
+      enemyXYCoordinatesObj[d][0] + ',' + enemyXYCoordinatesObj[d][1] + ')';
+  });
 },  refreshRatePlayer);
 
 // refresh score
